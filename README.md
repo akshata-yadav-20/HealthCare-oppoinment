@@ -1,6 +1,6 @@
 # CuraVia Health — AI-Powered Healthcare Appointment Platform (Portfolio-Grade)
 
-> **Live Deployment:** Frontend https://health-care-oppoinment.vercel.app/ | Backend https://health-care-oppoinment-7qu4aa.vercel.app/ — Vercel akshata10 (auto-deploy from main)
+> **Live Deployment:** https://health-care-oppoinment.vercel.app/ — Vercel akshata10 (Single Monorepo: UI + API same origin)
 
 
 Sage-trusted care, clay-warm follow-ups. Hold-protected bookings (10m TTL), AI triage, medication timelines — built for evaluation.
@@ -183,8 +183,7 @@ WorkingHours: Mon-Fri 09:00-17:00, Sat 09:00-13:00, Sun off; distinct slotDurati
 - **Single Project (Monorepo):** Vercel builds frontend/package.json (dist) + backend/api/index.ts (@vercel/node), routes /api/* -> backend, /health -> backend, /assets/* -> frontend, /* -> frontend. Env: VITE_API_URL=/ (same origin, no CORS)
 - **Backend:** health GET /health and /api/v1/health return {status:ok,mockMode,timestamp}. For Vercel, api/index.ts exports app; else app.listen(PORT).
 - **Local:** docker-compose.yml optional postgres:15 curavia/curavia and redis:7 (not needed in mock mode)
-- **Live URL (Single):** https://health-care-oppoinment.vercel.app/ (serves UI at / and API at /api/v1/* + /health, same origin)
-- **Separate Backend (alternative):** https://health-care-oppoinment-7qu4aa.vercel.app/health (if kept as 2nd project)
+- **Live URL (Single):** https://health-care-oppoinment.vercel.app/ — UI at / + API at /api/v1/* & /health (same origin, no CORS)
 
 ## Design Tokens
 
