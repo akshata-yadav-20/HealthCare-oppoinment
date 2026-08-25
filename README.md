@@ -1,5 +1,8 @@
 # CuraVia Health — AI-Powered Healthcare Appointment Platform (Portfolio-Grade)
 
+> **Live Deployment:** https://health-care-oppoinment.vercel.app/ — Vercel akshata10 (auto-deploy from main)
+
+
 Sage-trusted care, clay-warm follow-ups. Hold-protected bookings (10m TTL), AI triage, medication timelines — built for evaluation.
 
 ## Overview
@@ -180,7 +183,7 @@ WorkingHours: Mon-Fri 09:00-17:00, Sat 09:00-13:00, Sun off; distinct slotDurati
 - **Frontend:** Vercel static-build, vercel.json builds frontend/package.json distDir dist, routes /assets/* -> dist, /* -> index.html. Env: VITE_API_URL=https://curavia-backend.vercel.app
 - **Backend:** health GET /health and /api/v1/health return {status:ok,mockMode,timestamp}. For Vercel, api/index.ts exports app; else app.listen(PORT).
 - **Local:** docker-compose.yml optional postgres:15 curavia/curavia and redis:7 (not needed in mock mode)
-- **Hosted URLs (placeholders):** Frontend https://curavia-health.vercel.app, Backend https://curavia-backend.vercel.app, Health https://curavia-backend.vercel.app/health
+- **Live URLs:** Frontend https://health-care-oppoinment.vercel.app/ (Vercel akshata10), Backend https://health-care-oppoinment.vercel.app/api (health at /health), Health https://health-care-oppoinment.vercel.app/health
 
 ## Design Tokens
 
