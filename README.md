@@ -180,10 +180,11 @@ WorkingHours: Mon-Fri 09:00-17:00, Sat 09:00-13:00, Sun off; distinct slotDurati
 
 ## Deployment
 
-- **Frontend:** Vercel static-build, vercel.json builds frontend/package.json distDir dist, routes /assets/* -> dist, /* -> index.html. Env: VITE_API_URL=https://health-care-oppoinment-7qu4aa.vercel.app
+- **Single Project (Monorepo):** Vercel builds frontend/package.json (dist) + backend/api/index.ts (@vercel/node), routes /api/* -> backend, /health -> backend, /assets/* -> frontend, /* -> frontend. Env: VITE_API_URL=/ (same origin, no CORS)
 - **Backend:** health GET /health and /api/v1/health return {status:ok,mockMode,timestamp}. For Vercel, api/index.ts exports app; else app.listen(PORT).
 - **Local:** docker-compose.yml optional postgres:15 curavia/curavia and redis:7 (not needed in mock mode)
-- **Live URLs:** Frontend https://health-care-oppoinment.vercel.app/ (Vercel akshata10), Backend https://health-care-oppoinment-7qu4aa.vercel.app/ (health at /health), Health https://health-care-oppoinment-7qu4aa.vercel.app/health
+- **Live URL (Single):** https://health-care-oppoinment.vercel.app/ (serves UI at / and API at /api/v1/* + /health, same origin)
+- **Separate Backend (alternative):** https://health-care-oppoinment-7qu4aa.vercel.app/health (if kept as 2nd project)
 
 ## Design Tokens
 
