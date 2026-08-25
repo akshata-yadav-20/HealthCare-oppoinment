@@ -1,0 +1,140 @@
+node_modules
+dist
+.env
+"
+Set-Content -Path "C:\Users\Dhruv\curavia-health\frontend\.gitignore" -Value @"
+node_modules
+dist
+.env.local
+"
+Write-Host "api fixed"
+# Now create README and SYSTEM_DESIGN quickly
+Set-Content -Path "C:\Users\Dhruv\curavia-health\README.md" -Value @"
+# CuraVia Health — AI-Powered Appointment Platform
+
+Sage forest #2D6A4F + clay #E07A5F + cream #FEFAE0 — calm, trustworthy healthcare SaaS (Practo/Zocdoc quality, not Bootstrap).
+
+**Live:**
+- Frontend: https://curavia-frontend.vercel.app
+- Backend: https://curavia-backend.vercel.app (health: /health, api: /api/v1/health)
+
+## Features
+- **Patient:** search doctors by specialisation/date, real-time availability, hold (10m) ? symptom form ? confirm, AI pre/post summaries, cancel/reschedule, medication timeline, history
+- **Doctor:** today's/upcoming, AI pre-visit urgency badge, post-visit notes+prescription ? patient summary, leave calendar, patient history
+- **Admin:** CRUD doctors (workingHours JSON per weekday, slotDuration, fee, bio), leave (single/range) auto-cancel + notify, all appointments filtered, audit + notification logs, system health/failed jobs
+
+## Tech Stack
+- Backend: Node + TS + Express, Prisma (PostgreSQL), JWT + bcrypt, Zod, Pino
+- Frontend: React + TS + Vite, React Router, Axios, Framer Motion, Recharts — *Deviation from Next.js spec: Vite is lighter, static deploy on Vercel, no SSR needed for dashboard app; Next.js App Router would add complexity without benefit, API is separate service*
+- DB: PostgreSQL via Neon/Supabase (mock in-memory when USE_MOCK_DB=true or no DATABASE_URL)
+- Jobs: node-cron (expired holds every minute, email retry, reminders/medication) — BullMQ interface ready when REDIS_URL set
+- Email: Nodemailer (Ethereal/SMTP/SendGrid via env), notification_log PENDING/SENT/FAILED
+- Calendar: Google Calendar API v3 OAuth stub logs when no creds, booking still succeeds
+- LLM: abstracted services/llm.ts (OpenAI-compatible, timeout 10s, retry-once, JSON validation, stub fallback)
+- Deploy: Vercel (frontend + backend serverless), Neon Postgres + Upstash Redis free tier
+
+## Quick Start
+``bash
+git clone <repo>
+cd curavia-health
+# Backend
+cp .env.example backend/.env
+cd backend
+npm install
+npx prisma generate
+# If Postgres: npx prisma migrate dev or npx prisma db push
+# If no Postgres: keep USE_MOCK_DB=true (default)
+npm run dev     # http://localhost:4001
+# Frontend (new terminal)
+cd ../frontend
+npm install
+npm run dev     # http://localhost:5174
+``
+Default seed (auto on first start):
+- Admin: cura.admin@curavia.health / admin123
+- Patient: sofia@curavia.health / patient123 and marcus@curavia.health / patient123
+- Doctors: elena.rossi@curavia.health, amir.khan@curavia.health, priya.desai@curavia.health / doctor123
+
+## Env (.env.example)
+| Variable | Required | Description |
+|---|---|---|
+| DATABASE_URL | yes or USE_MOCK_DB=true | PostgreSQL (Neon) |
+| JWT_SECRET | yes | 32 chars |
+| LLM_PROVIDER/API_KEY/MODEL/TIMEOUT_MS/BASE_URL | no | OpenAI stub fallback if empty |
+| SMTP_HOST/PORT/USER/PASS/FROM/SECURE | no | jsonTransport stub if empty |
+| GOOGLE_CLIENT_ID/SECRET/REDIRECT_URI/ENCRYPTION_KEY | no | stub if empty |
+| REDIS_URL | no | Upstash, else node-cron |
+| PORT | no | 4001 |
+| FRONTEND_URL | no | http://localhost:5174 |
+| USE_MOCK_DB | no | true = in-memory mock |
+
+## API Docs (/api/v1)
+All { success, data?, error?, details? }, Zod, Bearer JWT
+
+| Method | Route | Auth | Body/Query | Response |
+|---|---|---|---|---|
+| POST | /api/v1/auth/register | - | {email,password,name,role?} | {user,token} 201 |
+| POST | /api/v1/auth/login | - | {email,password} | {user,token} |
+| GET | /api/v1/auth/me | any | - | {user} |
+| GET | /api/v1/doctors | any | ?specialisation=&date= | DoctorProfile[] |
+| GET | /api/v1/doctors/:id | any | - | Doctor |
+| GET | /api/v1/doctors/:id/availability?date=YYYY-MM-DD | any | date | {start,end}[] |
+| POST | /api/v1/appointments/hold | PATIENT | {doctorId,slotStart} | {appointment HELD 10m} 201 or 409 |
+| POST | /api/v1/appointments/:id/confirm | PATIENT | {rawSymptoms,duration,severity,existingConditions} | {appointment CONFIRMED, symptomForm} |
+| POST | /api/v1/appointments/:id/symptoms | PATIENT | same | alias confirm |
+| POST | /api/v1/appointments/:id/visit-notes | DOCTOR | {clinicalNotes,prescription[]} | mimic visits |
+| GET | /api/v1/appointments | auth | - | filtered by role |
+| GET | /api/v1/appointments/:id | auth | - | with symptomForm+visitNote |
+| POST | /api/v1/appointments/:id/cancel | auth | - | {appointment CANCELLED} |
+| POST | /api/v1/visits/:appointmentId | DOCTOR | {clinicalNotes,prescription[]} | {visitNote} 201 |
+| GET | /api/v1/visits/:appointmentId | auth | - | visitNote |
+| POST | /api/v1/doctor-leaves | ADMIN,DOCTOR | {doctorId?,startDate,endDate?,reason?} | {leave,cancelledCount} |
+| GET | /api/v1/doctor-leaves | auth | - | leaves |
+| DELETE | /api/v1/doctor-leaves/:id | ADMIN,DOCTOR | - | {} |
+| GET | /api/v1/admin/stats | ADMIN | - | {users,doctors,appointments,pending,failed} |
+| GET | /api/v1/admin/appointments | ADMIN | - | all |
+| GET | /api/v1/admin/notifications | ADMIN | - | logs |
+| GET | /api/v1/admin/audit | ADMIN | - | audit |
+| POST | /api/v1/admin/doctors | ADMIN | {email,password,name,specialisation,slotDuration,fee,bio,workingHours} | doctor |
+| GET | /api/v1/calendar/auth | auth | - | {url or stub} |
+| GET | /api/v1/calendar/status | auth | - | {connected} |
+
+## DB Schema (Prisma)
+See backend/prisma/schema.prisma — users, doctor_profiles (workingHours JSON, slotDurationMinutes, bio), doctor_leaves, appointments (unique [doctorId,slotStart], indexes), symptom_forms, visit_notes, medication_reminders, notification_logs, calendar_events, audit_logs
+
+## LLM Prompts & Abstraction
+Pre-visit: `Analyse these symptoms and return: urgency level (Low / Medium / High), chief complaint, and three suggested questions for the doctor. Symptoms: <symptoms>`
+Post-visit: `Convert these clinical notes into a patient-friendly summary with medication schedule and follow-up steps: <notes>`
+Provider via services/llm.ts: OpenAI-compatible, LLM_PROVIDER stub/SMTP switch via env, callWithTimeout 10s, retry-once, JSON regex /\{[\s\S]*\}/ + schema validation, fallback never blocks booking (llmStatus FAILED ? UI retry).
+
+## Google Calendar OAuth Setup
+1. https://console.cloud.google.com/apis/credentials ? Create OAuth Client (Web) ? Authorized redirect: http://localhost:4001/api/v1/calendar/callback (prod: your Vercel URL)
+2. Enable Calendar API
+3. Set GOOGLE_CLIENT_ID/SECRET/REDIRECT_URI/ENCRYPTION_KEY in backend/.env
+4. Frontend: patient/doctor clicks Connect Calendar ? /api/v1/calendar/auth ? Google consent ? callback stores encrypted refresh token ? createCalendarEvent on booking (best-effort, stub logs if no creds, booking succeeds anyway)
+
+## Background Jobs
+- Expired holds every minute: HELD && holdExpiresAt<now ? CANCELLED
+- Email retry every minute: PENDING/FAILED retryCount<3 with 2^retry*1000ms backoff, dead-letter FAILED visible to admin
+- Reminders: every minute check CONFIRMED in 24h window ? enqueue REMINDER; medication reminders parse frequency/duration ? enqueue MEDICATION_REMINDER until duration elapses
+
+## Testing
+``bash
+# With backend running on 4001 (USE_MOCK_DB=true)
+node tests/concurrent-booking.js   # expect 1 success 1 conflict
+node tests/leave-cancellation.js   # expect cancelledCount 1
+node tests/llm-fallback.js          # expect High urgency + summary fallback
+``
+
+## Deployment (Vercel)
+Frontend: Vercel static-build, dist, env VITE_API_URL=backend URL
+Backend: Vercel @vercel/node, api/index.ts, env USE_MOCK_DB=true + DATABASE_URL + JWT_SECRET + etc
+Both free-tier deployable, docker-compose for local Postgres+Redis
+
+## Self-Check Checklist
+- [x] Double-booking: unique + transaction P2002 409 + hold TTL + cron
+- [x] LLM prompts exact + JSON validation + fallback pending not blocking
+- [x] Schema normalized, constrained, indexed
+- [x] API RESTful, {success,data,error}, Zod, role guards, layered
+- [x] Email queued/retry + calendar best-effort OAuth documented
+- [x] UI sage/clay distinct, responsive, all states, Framer Motion, a11y

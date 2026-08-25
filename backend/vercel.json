@@ -1,0 +1,11 @@
+{
+  ""version"": 2,
+  ""builds"": [
+    { ""src"": ""api/index.ts"", ""use"": ""@vercel/node"" },
+    { ""src"": ""src/server.ts"", ""use"": ""@vercel/node"" }
+  ],
+  ""routes"": [
+    { ""src"": ""/(.*)"", ""dest"": ""api/index.ts"" }
+  ],
+  ""env"": { ""USE_MOCK_DB"": ""true"" }
+}
