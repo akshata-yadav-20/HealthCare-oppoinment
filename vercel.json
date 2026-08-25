@@ -5,5 +5,10 @@
     { "source": "/api/(.*)", "destination": "/api" },
     { "source": "/health", "destination": "/api" },
     { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  ],
+  "functions": {
+    "api/index.ts": {
+      "includeFiles": "backend/**"
+    }
+  }
 }
