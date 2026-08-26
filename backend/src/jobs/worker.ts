@@ -57,7 +57,7 @@ export function startJobs() {
             return num*24*3600000;
           }
           const maxEnd = new Date(new Date(mr.createdAt).getTime() + parseDurationToMs(mr.duration));
-          if (now > maxEnd) { mr.status='CANCELLED'; logger.info({ drug:mr.drug, duration:mr.duration }, 'Medication reminder duration elapsed — cancelled'); continue; }
+          if (now > maxEnd) { mr.status='CANCELLED'; logger.info({ drug:mr.drug, duration:mr.duration }, 'Medication reminder duration elapsed â€” cancelled'); continue; }
           const vn=store.visitNotes.find(v=>v.id===mr.visitNoteId);
           const ap=store.appointments.find(a=>a.id===vn?.appointmentId);
           const patient=store.users.find(u=>u.id===ap?.patientId);
@@ -78,4 +78,4 @@ export function startJobs() {
     }catch(e:any){ logger.error({ err:e.message }, 'Reminder job failed'); }
   });
   logger.info('CuraVia background jobs started');
-}
+}

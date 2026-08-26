@@ -3,7 +3,7 @@ import { logger } from '../config/logger';
 import { isMockMode, getMockStore, getPrisma } from '../config/prisma';
 export async function createCalendarEvent(appointment:any, patientEmail:string, doctorEmail:string){
   if (!env.GOOGLE_CLIENT_ID){
-    logger.info({ appointmentId:appointment.id }, 'Calendar stub — no GOOGLE_CLIENT_ID, mock event created');
+    logger.info({ appointmentId:appointment.id }, 'Calendar stub â€” no GOOGLE_CLIENT_ID, mock event created');
     if (isMockMode()){
       const store=getMockStore();
       store.calendarEvents.push({ id:'cal_'+Date.now(), appointmentId:appointment.id, googleEventId:'mock_'+Math.random().toString(36).slice(2), ownerEmail:patientEmail, syncStatus:'SYNCED', createdAt:new Date() });
@@ -32,4 +32,4 @@ export async function deleteCalendarEvent(appointmentId:string){
     try { await getPrisma().calendarEvent.deleteMany({ where:{ appointmentId } as any }); } catch {}
   }
   return { success:true };
-}
+}
