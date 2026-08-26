@@ -39,9 +39,9 @@ if (!process.env.VERCEL) {
     logger.info('CuraVia server listening on ' + port + ' mockMode=' + isMockMode());
     if (!isMockMode()) { await testDbConnection(); try { await getPrisma().$connect(); } catch {} }
     startJobs();
-    try { const { seedIfNeeded } = await import('./seed'); await seedIfNeeded(); } catch(e:any){ logger.warn({ err:e.message }, 'Seed check failed'); }
+    try { const { seedIfNeeded } = await import('./seed.js'); await seedIfNeeded(); } catch(e:any){ logger.warn({ err:e.message }, 'Seed check failed'); }
   });
 } else {
-  (async()=>{ if (!isMockMode()) { try { await getPrisma().$connect(); } catch {} } try { const { seedIfNeeded } = await import('./seed'); await seedIfNeeded(); } catch {} })();
+  (async()=>{ if (!isMockMode()) { try { await getPrisma().$connect(); } catch {} } try { const { seedIfNeeded } = await import('./seed.js'); await seedIfNeeded(); } catch {} })();
 }
 export default app;

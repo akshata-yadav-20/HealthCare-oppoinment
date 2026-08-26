@@ -21,9 +21,9 @@ async function processQueue() {
     const item = queue.shift()!;
     const emailPayload = templatedEmail(item.type, { ...item.payload, to: item.recipient });
     let result: any;
-    const { forceFailNext } = await import('./email');
+    const { forceFailNext } = await import('./email.js');
     if (forceFailNext) {
-      const { setForceFail } = await import('./email');
+      const { setForceFail } = await import('./email.js');
       setForceFail(false);
       result = { success: false, error: 'Forced failure for testing' };
     } else {
